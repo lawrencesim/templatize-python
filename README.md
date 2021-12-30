@@ -249,7 +249,7 @@ Within the context of the repeating section, the same tag is temporarily bound t
 &nbsp; *Bindings:*
 
 ```python
-{'children': ["Tina", "Gene", "Louise", "", null, false, 0]}
+{'children': ["Tina", "Gene", "Louise", "", None, false, 0]}
 ```
 
 &nbsp; *Outputs:*

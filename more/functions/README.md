@@ -12,25 +12,23 @@ As the behavior of the function depends on what is returned, it may be used in a
 
 &nbsp; *Bindings:*
 
-```javascript
+```python
 {
-  name: {
-    first: "Bob", 
-    last: "Belcher"
-  }, 
-  fullname: function(root) {
-    // in this case, this/root will refer to the same
-    return this.name.first + " " + root.name.last;
-  }, 
-  relations: [
-    {name: "Teddy", friendly: true}, 
-    {name: "Mort", friendly: true}, 
-    {name: "Jimmy Pesto", friendly: false}
+  'name': {
+    'first': "Bob", 
+    'last': "Belcher"
+  },
+  # in this case, this/root will refer to the same 
+  'fullname': lambda self, root : "{0} {1}".format(self['name']['first'], root['name']['last']), 
+  'relations': [
+    {'name': "Teddy", 'friendly': True}, 
+    {'name': "Mort", 'friendly': True}, 
+    {'name': "Jimmy Pesto", 'friendly': False}
   ], 
-  friends: function() { 
-    return this.relations.filter(person => person.friendly)
-                         .map(person => person.name);
-  }
+  'friends': lambda self, root : map(
+    lambda person : person['name'], 
+    filter(lambda person : person['friendly'], self['relations'])
+  )
 }
 ```
 
@@ -44,13 +42,13 @@ Bob Belcher's friends include Teddy and Mort.
 
 ### Error handling
 
-By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be an empty string. To change this, simply set the `errorOnFuncFailure` flag to `true` in the [options](../../#options).
+By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be an empty string. To change this, simply set the `error_on_func_failure` flag to `true` in the [options](../../#options).
 
 &nbsp; 
 
 ### Functions as objects
 
-If a function returns an object, it can be referenced into as if it were a normal object.
+If a function returns an dictionary, it can be referenced into as if it were a normal dictionary.
 
 &nbsp; *Template:*
 
@@ -63,14 +61,12 @@ Menu: <br />
 
 &nbsp; *Bindings:*
 
-```javascript
+```python
 { 
-  burger: {name: "burger", price: 5}, 
-  fries: {name: "fries", price: 2}, 
-  soda: {name: "soda", price: 2}, 
-  menu: function() {
-    return {burger: this.burger, fries: this.fries, soda: this.soda};
-  }
+  'burger': {'name': "burger", 'price': 5}, 
+  'fries': {'name': "fries", 'price': 2}, 
+  'soda': {'name': "soda", 'price': 2}, 
+  'menu': lambda self, root : {'burger': self['burger'], 'fries': self['fries'], 'soda': self['soda']}
 }
 ```
 
@@ -89,7 +85,7 @@ Soda - $2.00.
 
 To specify a specific context in which the function should be called, you may use the pass-context-to-function directive, by separating the context (first) and function to call it on (second) with an arrow directive (`->`).
 
-When in a passed context, the `this` context for the function will the be the data-binding of the context, but the root will also be supplied as an argument.
+When in a passed context, the `self` context for the function will the be the data-binding of the context, but the root will also be supplied as an argument.
 
 &nbsp; *Template:*
 
@@ -102,23 +98,19 @@ When in a passed context, the `this` context for the function will the be the da
 
 &nbsp; *Bindings:*
 
-```javascript
+```python
 {
-  main: {
-    name: "Bob"
+  'main': {
+    'name': "Bob"
   }, 
-  familyName: "Belcher", 
-  children: [
-    {name: "Tina", born: 2008}, 
-    {name: "Gene", born: 2010}, 
-    {name: "Louise", born: 2012}
+  'familyName': "Belcher", 
+  'children': [
+    {'name': "Tina", 'born': 2008}, 
+    {'name': "Gene", 'born': 2010}, 
+    {'name': "Louise", 'born': 2012}
   ], 
-  fullname: function(root) {
-    return this.name + " " + root.familyName;
-  },
-  age: function() {
-    return 2021 - this.born;
-  }
+  'fullname': lambda self, root : self['name'] + " " + root['familyName'], 
+  'age': lambda self, root : 2021 - self['born']
 }
 ```
 
@@ -137,7 +129,7 @@ Louise Belcher (9 years old)
 
 As demonstrated earlier, functions can return almost anything and be appropriately handled from there. However, functions that return a function will continue to be re-evaluated until it returns a non-function value. Or it will error if it begins to detect an infinite loop (the max. iterations is kept quite strict at 12).
 
-Functions are evaluated when they are first called (or never if they are not). After the first call however, the returned value from the first evaluation is cached. If the function is passed to a context however, it is considered dynamic and re-evaluated each time (even if the same context).
+Functions are evaluated when they are first called (or never if they are not). After the first call, the returned value from the first evaluation is cached. If the function is passed to a context however, it is considered dynamic and re-evaluated each time (even if the same context).
 
 &nbsp; *Template:*
 
@@ -150,10 +142,14 @@ Functions are evaluated when they are first called (or never if they are not). A
 
 &nbsp; *Bindings:*
 
-```javascript
+```python
+def count(self, root):
+  root.i += 1
+  return root
+
 {
-  i: 0, 
-  count: function(root) { return ++root.i; }
+  'i': 0, 
+  'count': count
 }
 ```
 

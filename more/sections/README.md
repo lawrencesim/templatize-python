@@ -14,12 +14,12 @@ Bob has {{^haspets}}no pets{{/haspets}}{{#haspets}}pets{{/haspets}}.
 
 &nbsp; *Bindings:*
 
-```javascript
+```python
 {
-  married: true, 
-  single: false, 
-  spouse: "Linda", 
-  haspets: false
+  'married': True, 
+  'single': False, 
+  'spouse': "Linda", 
+  'haspets': False
 }
 ```
 
@@ -35,7 +35,7 @@ Bob has no pets.
 
 ### Section value evaluation
 
-The data bound to a section tag is evaluated for 'truthiness'. Values of `undefined`, `null`, an empty string or a string composed only of whitespace, an empty array, and `0` evaluate as false (though in certain cases you may want to [treat 0-values as true](#treating-zero-values-as-true)). Otherwise, as long as data-binding for section evaluates to true, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value.
+The data bound to a section tag is evaluated for 'truthiness'. Values of `None`, an empty string or a string composed only of whitespace, an empty list, and `0` evaluate as False (though in certain cases you may want to [treat 0-values as true](#treating-zero-values-as-true)). Otherwise, as long as data-binding for section evaluates to true, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value.
 
 &nbsp;
 
@@ -51,10 +51,10 @@ Using the above, one common pattern is to use the same data-binding for both the
 
 &nbsp; *Bindings:*
 
-```javascript
-{job: "Chef"}
-// or conversely, which will hide the section..
-{job: null}
+```python
+{'job': "Chef"}
+# or conversely, which will hide the section..
+{'job': None}
 ```
 
 &nbsp; *Outputs:*
@@ -81,10 +81,10 @@ An alternative approach is to use an object for the section data.
  
 &nbsp; *Bindings:*
 
-```javascript
-{job: {title: "Chef"}}
-// or conversely, which will hide the section..
-{job: false}
+```python
+{'job': {'title': "Chef"}}
+# or conversely, which will hide the section..
+{'job': False}
 ```
 
 &nbsp;
@@ -104,11 +104,11 @@ Saturday - {{#saturday}}{{saturday::$.2f}}{{/saturday}}{{^saturday}}Closed{{/sat
 
 &nbsp; *Bindings:*
 
-```javascript
+```python
 {
-  monday: null, 
-  sunday: 0, 
-  saturday: 122
+  'monday': None, 
+  'sunday': 0, 
+  'saturday': 122
 }
 ```
 
@@ -121,7 +121,7 @@ Sunday - Closed
 Saturday - $122.00
 ```
 
-By setting `evalZeroAsTrue` to true in the [options](../../#options), you can change this behavior to treat zero-values as truthy. Which will change to output as follows.
+By setting `eval_zero_as_true` to true in the [options](../../#options), you can change this behavior to treat zero-values as truthy. Which will change to output as follows.
 
 &nbsp; *Outputs:*
 
@@ -136,7 +136,7 @@ Saturday - $122.00
 
 ### The `_display` parameter
 
-Section data may still be filled out but removed/hidden if a `_display` variable exists and evaluates to  false (this behavior evaluates truthiness by standard javascript conventions).
+Section data may still be filled out but removed/hidden if a `_display` variable exists and evaluates to False (this behavior evaluates truthiness by standard python conventions).
 
 &nbsp; *Template:*
 
@@ -147,11 +147,11 @@ Bob is a {{job.title}}
 
 &nbsp; *Bindings:*
 
-```javascript
+```python
 {
-  job: {
-    title: "Chef", 
-    _display: false
+  'job': {
+    'title': "Chef", 
+    '_display': False
   }
 }
 ```
@@ -171,9 +171,9 @@ Note in the above that `_display` does not reverse the behavior of inverse secti
 
 ## Repeating Sections
 
-If the value bound to a section tag is an array (or function that evaluates to an array), the section will be repeated for as many items as exists in the array. 
+If the value bound to a section tag is an list (or function that evaluates to an list), the section will be repeated for as many items as exists in the list. 
 
-Within the context of the repeating section, the same tag is temporarily bound to the value of each item during each iteration. Thus the below section tag key and value key are the same for this array of flat values.
+Within the context of the repeating section, the same tag is temporarily bound to the value of each item during each iteration. Thus the below section tag key and value key are the same for this list of flat values.
 
 &nbsp; *Template:*
 
@@ -183,8 +183,8 @@ Within the context of the repeating section, the same tag is temporarily bound t
 
 &nbsp; *Bindings:*
 
-```javascript
-{children: ["Tina", "Gene", "Louise", "", null, false, 0]}
+```python
+{'children': ["Tina", "Gene", "Louise", "", None, False, 0]}
 ```
 
 &nbsp; *Outputs:*
@@ -197,7 +197,7 @@ Child: Louise
 
 Note that each item is also treated to the same [section value evaluation](./more/sections/#section-value-evaluation) to determine whether it is rendered.
 
-Arrays may contain objects or functions as well. In objects, you can use the `_display` parameter to hide a particular item, same as you would for a section. Below, we also take advantage of the [in-context directive](#../#scoping-and-the context-directive).
+Lists may contain objects or functions as well. In objects, you can use the `_display` parameter to hide a particular item, same as you would for a section. Below, we also take advantage of the [in-context directive](#../#scoping-and-the context-directive).
 
 &nbsp; *Template:*
 
@@ -207,13 +207,13 @@ Arrays may contain objects or functions as well. In objects, you can use the `_d
 
 &nbsp; *Bindings:*
 
-```javascript
+```python
 {
-  children: [
-    {firstName: "Tina"}, 
-    {firstName: "Gene"}, 
-    {firstName: "Louise"}, 
-    {firstName: "Kuchi-Kopi", _display: false}
+  'children': [
+    {'firstName': "Tina"}, 
+    {'firstName': "Gene"}, 
+    {'firstName': "Louise"}, 
+    {'firstName': "Kuchi-Kopi", '_display': false}
   ]
 }
 ```
@@ -226,7 +226,7 @@ Child: Gene
 Child: Louise
 ```
 
-Finally, note that data within an array cannot be accessed outside of a section. However, the array itself will attempt to render if called as a variable.
+Finally, note that data within an list cannot be accessed outside of a section. However, the list itself will attempt to render if called as a variable.
 
 &nbsp; *Template:*
 
@@ -238,8 +238,8 @@ Finally, note that data within an array cannot be accessed outside of a section.
 
 &nbsp; *Bindings:*
 
-```javascript
-{children: ["Tina", "Gene", "Louise"]}
+```python
+{'children': ["Tina", "Gene", "Louise"]}
 ```
 
 &nbsp; *Outputs:*
@@ -264,13 +264,13 @@ Repeating sections may be combined with the list directive to grammatically form
 
 &nbsp; *Bindings:*
 
-```javascript
+```python
 {
-  name: {
-    first: "Bob", 
-    last: "Belcher"
+  'name': {
+    'first': "Bob", 
+    'last': "Belcher"
   }, 
-  children: ["Tina", "Gene", "Louise"]
+  'children': ["Tina", "Gene", "Louise"]
 }
 ```
 
@@ -298,24 +298,24 @@ Nested sections should behave as expected, even mixing regular versus repeating 
 
 &nbsp; *Bindings:*
 
-```javascript
+```python
 {
-  name: {
-    first: "Bob", 
-    last: "Belcher"
+  'name': {
+    'first': "Bob", 
+    'last': "Belcher"
   }, 
-  children: [
+  'children': [
     {
-      name: {first: "Tina"},
-      hobbies: ["butts", "Equestranauts", "Boyz 4 Now"]
+      'name': {'first': "Tina"},
+      'hobbies': ["butts", "Equestranauts", "Boyz 4 Now"]
     }, 
     {
-      name: {first: "Gene"},
-      hobbies: ["music", "farts"]
+      'name': {first: "Gene"},
+      hobb'ies: ["music", "farts"]
     }, 
     {
-      name: {first: "Louise"},
-      hobbies: ["mischief"]
+      'name': {first: "Louise"},
+      'hobbies': ["mischief"]
     }
   ]
 }
@@ -344,10 +344,10 @@ For standard sections, nesting sections, even within itself, adds no major compl
 
 &nbsp; *Bindings:*
 
-```javascript
+```python
 {
-  n: 1,
-  increment: function() { return this+1; }
+  'n': 1,
+  'increment': lambda self, root : self + 1
 }
 ```
 
@@ -373,10 +373,10 @@ This gets particularly confusing with repeating contexts but makes sense when yo
 
 &nbsp; *Bindings:*
 
-```javascript
-{repeat: [1,2,3]} 
-```
-
+```python
+{'repeat': [1,2,3]} 
+'```
+'
 &nbsp; *Outputs:*
 
 ```
@@ -391,4 +391,4 @@ Your initial inclination might be to expect the output to be `1 2 3 1 2 3 1 2 3`
 
 #### More
 
-There are a few other things you can create with sections, such as mixing in directives in the section tag (briefly covered) or handling multi-dimensional arrays in repeating sections. For a run down of some these, read the section: [Advanced usage, edge cases, and general weirdness](../advanced/).
+There are a few other things you can create with sections, such as mixing in directives in the section tag (briefly covered) or handling multi-dimensional lists in repeating sections. For a run down of some these, read the section: [Advanced usage, edge cases, and general weirdness](../advanced/).

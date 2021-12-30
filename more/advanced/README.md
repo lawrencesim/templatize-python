@@ -22,8 +22,8 @@ By using the in-context directive, you can access multi-dimensional arrays.
 
 &nbsp; *Bindings:*
 
-```javascript
-{a: [[0,1], [2,3], []]}
+```python
+{'a': [[0,1], [2,3], []]}
 ```
 
 &nbsp; *Outputs:*
@@ -71,35 +71,26 @@ You can supply an array of functions for a repeating section. In the below examp
 
 &nbsp; *Bindings:*
 
-```javascript
+```python
 {
-  people: [ 
+  'people': [ 
     {
-      name: {first: "Linda", last: "Belcher"}, 
-      friendly: true
+      'name': {'first': "Linda", 'last': "Belcher"}, 
+      'friendly': True
     }, 
     {
-      name: {first: "Teddy", last: ""}, 
-      friendly: true
+      'name': {'first': "Teddy", 'last': ""}, 
+      'friendly': True
     }, 
     {
-      name: {first: "Jimmy", last: "Pesto"}, 
-      friendly: false
+      'name': {'first': "Jimmy", 'last': "Pesto"}, 
+      'friendly': False
     } 
   ], 
-  funcs: [
-    function() {
-      if(!this.name) return 1;
-      return this.name.first + " " + this.name.last + "<br />";
-    }, 
-    function() {
-      if(!this.name) return 1;
-      return this.name.last === "Belcher" ? "- is family<br />" : "";
-    }, 
-    function() {
-      if(!this.name) return 1;
-      return this.friendly ? "- is a friend<br />" : "";
-    }
+  'funcs': [
+    lambda self, root : 1 if not self['name'] else "{0} {1}<br />".format(self['name']['first'], self['name']['last']), 
+    lambda self, root : 1 if not self['name'] else ("- is family<br />" if self['name']['last'] == "Belcher" else ""), 
+    lambda self, root : 1 if not self['name'] else ("- is a friend<br />" if self['friendly'] else "")
   ]
 }
 ```
@@ -118,9 +109,9 @@ Jimmy Pesto
 
 ```
 
-Note however that the above functions only make sense within the context of an item in `people`. Thus the if-statements returning 1 were added to each to protect against an error when traversing into an undefined property of the context. Because the functions are never used in the template outside the context of an item in `people`, the resulting "1" value is never printed. 
+Note however that the above functions only make sense within the context of an item in `people`. Thus the first-level if-statements returning 1 were added to each to protect against an error when traversing into an undefined property of the context. Because the functions are never used in the template outside the context of an item in `people`, the resulting "1" value is never printed. 
 
-*However* these functions are evaluated in the repeating section `{{#func}}`, using the raw context (in this case resolving to the root binding), wherein the if-statements do come into play. If the if-statements returned false (or 0 or whitespace), they would be excluded from the repeating section render. Thus they must return a truthy value (or 0 with [the option to treat zero-values as true](../sections/#treating-zero-values-as-true)).
+*However* these functions are evaluated in the repeating section `{{#func}}`, using the raw context (in this case resolving to the root binding), wherein the if-statements do come into play. If the if-statements returned False (or 0 or whitespace), they would be excluded from the repeating section render. Thus they must return a truthy value (or 0 with [the option to treat zero-values as true](../sections/#treating-zero-values-as-true)).
 
 &nbsp;
 
@@ -138,11 +129,10 @@ When passing a function as a context to itself, the function will first be evalu
 
 &nbsp; *Bindings:*
 
-```javascript
+```python
 {
-  list: ["one", "two", "three", "four"], 
-  removeFirst: function() {
-    return {list: this.list.slice(1)};
+  'list': ["one", "two", "three", "four"], 
+  'removeFirst': lambda self, root : {'list': self['list'][1:]}
   } 
 }
 ```
@@ -155,9 +145,9 @@ When passing a function as a context to itself, the function will first be evalu
 3. three and four
 ```
 
-Line 1 calls `removeFirst` which returns an object it can render `list` from. 
+Line 1 calls `removeFirst` which returns an dictionary it can render `list` from. 
 
-Line 2 takes the object returned from `removeFirst` when called, then uses it as a context to call the function again, which removes another item. However, we can't access the property `list` in the template. Adding dot-notation to this tag (e.g. `{{removeFirst->removeFirst.list}}`) would be interpreted as trying to find a function called `removeFirst.list`, which returns an array and would thus raise an exception as a context was passed to a non-function. Hence while the object returned is `{list: ["three", "four"]}` which is printed as is.
+Line 2 takes the dictionary returned from `removeFirst` when called, then uses it as a context to call the function again, which removes another item. However, we can't access the property `list` in the template. Adding dot-notation to this tag (e.g. `{{removeFirst->removeFirst.list}}`) would be interpreted as trying to find a function called `removeFirst.list`, which returns an array and would thus raise an exception as a context was passed to a non-function. Hence while the dictionary returned is `{"list": ["three", "four"]}` which is printed as is.
 
 Line 3 works around this by using the output into a section, then using the section context to access the data in the context with another tag (which is covered in [the following section](#mixing-directives-in-a-section-tag)).
 
@@ -178,11 +168,11 @@ Section tags may have in-context or pass-to-function directives. This will resol
 
 &nbsp; *Bindings:*
 
-```javascript
+```python
 {
-  spacer: "&nbsp;&nbsp;&nbsp;&nbsp;",
-  burger: {
-    toppings: ["cheese", "onions", "lettuce", "tomato"]
+  'spacer': "&nbsp;&nbsp;&nbsp;&nbsp;",
+  'burger': {
+    'toppings': ["cheese", "onions", "lettuce", "tomato"]
   }
 }
 ```
@@ -219,23 +209,21 @@ When using a context-passed-to-function as the section tag, this will create the
 
 &nbsp; *Bindings:*
 
-```javascript
+```python
 {
-  spacer: "&nbsp;&nbsp;&nbsp;&nbsp;",
-  burger: {
-    addons: ["cheese", "bacon", "avocado"]
+  'spacer': "&nbsp;&nbsp;&nbsp;&nbsp;",
+  'burger': {
+    'addons': ["cheese", "bacon", "avocado"]
   }, 
-  prices: { 
-    cheese: 0.5, 
-    bacon: 2, 
-    avocado: 1.5
+  'prices': { 
+    'cheese': 0.5, 
+    'bacon': 2, 
+    'avocado': 1.5
   }, 
-  withPrices: function(root) {
-    return this.map(name => ({
-      name: name, 
-      price: root.prices[name]
-    }));
-  }
+  'withPrices': lambda self, root : map(
+    lambda name : {'name': name, 'price': root['prices'][name]}, 
+    self
+  )
 }
 ```
 
@@ -275,13 +263,17 @@ In the below, the `count` function is always passed to a context to force re-eva
 
 &nbsp; *Bindings:*
 
-```javascript
+```python
+def count(self, root):
+  root.i += 1
+  return root.i
+
 {
-  i: 0, 
-  outer: [1,2,3], 
-  inner: [1,2], 
-  section: true, 
-  count: function(root) { return ++root.i; }
+  'i': 0, 
+  'outer': [1,2,3], 
+  'inner': [1,2], 
+  'section': True, 
+  'count': count
 }
 ```
 

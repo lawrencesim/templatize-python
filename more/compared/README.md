@@ -20,10 +20,10 @@ In Templatize, functions bound to a section tag use the output of the function a
 
 Data context is one of the biggest usage differences that may trip up someone switching between the two libraries. Context in Mustache is automatically assumed from within a section. If the data binding is:
 
-```javascript
+```python
 {
-  outer: {inner: "inside"}, 
-  inner: "outside"
+  'outer': {'inner': "inside"}, 
+  'inner': "outside"
 }
 ```
 
