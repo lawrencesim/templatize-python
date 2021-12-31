@@ -23,16 +23,16 @@ class Template:
         node       = None
         while True:
             # find opening delimiter
-            dopen = template.find(delimiters[0])
+            dopen = template.find(delimiters[0], search)
             if dopen < 0:
                 break
             start = dopen + len(delimiters[0])
             # find closing delimiter
             dclose = template.find(delimiters[1], search)
-            if close < 0:
+            if dclose < 0:
                 break
             # update search position
-            search = close + len(delimiters[1])
+            search = dclose + len(delimiters[1])
             # ignore escaped (remove directive character in template)
             if template[dopen-1] == "!":
                 template = template[0:dopen-1] + template[dopen:]
@@ -53,9 +53,9 @@ class Template:
             # handle sections
             elif node.directive == DIRECTIVES.SECTION_END:
                 if isinstance(current, RootNode):
-                    raise "Invalid template: unpaired section close at {0}".format(node.raw)
+                    raise Exception("Invalid template: unpaired section close at {0}".format(node.raw))
                 if current.open.key != node.key:
-                    raise "Invalid template: Invalid template: section conflict at {0} close before inner {1} closed".format(node.raw, current.open.raw)
+                    raise Exception("Invalid template: Invalid template: section conflict at {0} close before inner {1} closed".format(node.raw, current.open.raw))
                 current = current.parent
                 nest -= 1
             elif node.directive in (DIRECTIVES.LIST_SECTION, DIRECTIVES.SECTION_INC, DIRECTIVES.SECTION_EXC):
@@ -74,5 +74,5 @@ class Template:
             current.inner.append(TextNode(template[search:]))
         # final error check
         if current != self.root:
-            raise "Invalid template: hanging open section for {0}".format(current.open.raw)
+            raise Exception("Invalid template: hanging open section for {0}".format(current.open.raw))
         

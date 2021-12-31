@@ -1,6 +1,6 @@
-from lib.nodes import RootNode, TextNode, PartialNode, SectionNode
+from lib.nodes import RootNode, TextNode, PartialNode, SectionNode, Node
 from lib.misc import TYPES, type_of, evalf, format_value, is_array
-from lib.directives import DIRECTIVE
+from lib.directives import DIRECTIVES, SYMBOLS
 from lib.template import Template
 from lib.domain import Domain
 import json
@@ -25,6 +25,9 @@ class Result:
         self.value       = None
         self.func        = None
 
+    def __len__(self):
+        return self.length
+
     def get_domain(self):
         if self.isrepeating:
             if self.func:
@@ -37,17 +40,14 @@ class Result:
 
 class Interface:
 
-    def __init__(self, template, option=None):
-        options = options if options else {}
-        self._error_on_func_failure = options["error_on_func_failure"] if "error_on_func_failure" in options else DEFAULT.error_on_func_failure
-        self._eval_zero_as_true     = options["eval_zero_as_true" ]    if "eval_zero_as_true" in options     else DEFAULT.eval_zero_as_true
-        self._escape_all            = options["escape_all"]            if "escape_all" in options            else DEFAULT.escape_all
-        self._error_on_missing_tags = options["error_on_missing_tags"] if "error_on_missing_tags" in options else DEFAULT.error_on_missing_tags
-        self._template              = template
-        self._root                  = None
-        self._partials              = {}
-        self._options               = {}
-        self._errorHandler          = None
+    def __init__(self, template, options=None):
+        self._parse_options(options)
+        self._template            = template
+        self._root                = None
+        self._partials            = {}
+        self._options             = {}
+        self._errorHandler        = None
+        self._spawn_error_handler = None
 
     @property
     def error_on_func_failure(self):
@@ -79,9 +79,28 @@ class Interface:
         if to is not None:
             self._error_on_missing_tags = bool(to)
 
+    def _parse_options(self, options=None):
+        if not options:
+            options = {}
+        self.error_on_func_failure = options["error_on_func_failure"] if "error_on_func_failure" in options \
+                                        else DEFAULT["error_on_func_failure"]
+        self.eval_zero_as_true     = options["eval_zero_as_true" ] if "eval_zero_as_true" in options \
+                                        else DEFAULT["eval_zero_as_true"]
+        self.escape_all            = options["escape_all"] if "escape_all" in options \
+                                        else DEFAULT["escape_all"]
+        self.error_on_missing_tags = options["error_on_missing_tags"] if "error_on_missing_tags" in options \
+                                        else DEFAULT["error_on_missing_tags"]
+        # snapshot options
+        self._options = {
+            "error_on_func_failure": self.error_on_func_failure, 
+            "eval_zero_as_true":     self.eval_zero_as_true, 
+            "escape_all":            self.escape_all, 
+            "error_on_missing_tags": self.error_on_missing_tags
+        }
+
     def _missing_handler(self, key, throw_error=False):
         if throw_error or self._error_on_missing_tags:
-            raise "Render error: missing binding for {0}".format(key)
+            raise Exception("Render error: missing binding for {0}".format(key))
         return ""
 
     def _error_handler_inner(self, key, exception):
@@ -92,36 +111,18 @@ class Interface:
         return ""
 
     def render(self, bindings, options=None):
-        options = options if options else {}
-        if error_on_func_failure in options:
-            self.error_on_func_failure = options["error_on_func_failure"]
-        if eval_zero_as_true in options:
-            self.eval_zero_as_true = options["eval_zero_as_true"]
-        if escape_all in options:
-            self.escape_all = options["escape_all"]
-        if error_on_missing_tags in options:
-            self.error_on_missing_tags = options["error_on_missing_tags"]
-
+        self._parse_options(options)
         if self.error_on_func_failure:
-            def
             self._spawn_error_handler = lambda key : lambda exception : self._error_handler_inner(key, exception)
 
         try:
-            # snapshot options
-            self._options = {
-                "error_on_func_failure": self.error_on_func_failure, 
-                "eval_zero_as_true":     self.eval_zero_as_true, 
-                "escape_all":            self.escape_all, 
-                "error_on_missing_tags": self.error_on_missing_tags
-            }
-
             if isinstance(bindings, Domain):
                 self._root = bindings.reroot()
             else:
-                self._root = Domain(bindings);
+                self._root = Domain(bindings)
 
             # map partials
-            self._partials = options.partials if options.partials else {}
+            self._partials = options.partials if options and options.partials else {}
             for pkey, partial in self._partials.items():
                 if isinstance(partial, str):
                     try:
@@ -130,22 +131,21 @@ class Interface:
                         "Invalid partial template for '{0}'".format(pkey)
                         raise e
                 elif not isinstance(partial, Template):
-                    raise "Invalid partial: must be instance of Template or template string ('{0}' is {1})".format(pkey, type(partial))
+                    raise Exception("Invalid partial: must be instance of Template or template string ('{0}' is {1})".format(pkey, type(partial)))
 
             return self._render_inside_out(self._render_outside_in(self._template.root))
 
         finally:
             # clean up references and temporary variables
-            self._root     = None
-            self._partials = {}
-            self._options  = {}
+            self._root                = None
+            self._partials            = {}
+            self._spawn_error_handler = None
 
     def _process_context(self, node, domain, dynamics=None):
-        on_func_error = self._spawn_error_handler(node.raw)
-
+        on_func_error = self._spawn_error_handler(node.raw) if self._spawn_error_handler else None
         def search(snode):
             if not snode.incontext and dynamics and len(dynamics):
-                for dy in dynamics.reverse():
+                for dy in reversed(dynamics):
                     if dy.incontext(snode.key):
                         return dy.search(snode, on_func_error)
             return domain.search(snode, on_func_error)
@@ -153,11 +153,11 @@ class Interface:
         result = Result()
 
         # get domain of node
-        result.node = search(snode)
+        result.node = search(node)
         if not result.node:
             return None
 
-        if not node.func::
+        if not node.func:
             result.value     = result.node.value(on_func_error)
             result.isdynamic = result.isrepeating = result.node.isrepeating
             result.length    = len(result.node.dynamic)
@@ -167,9 +167,9 @@ class Interface:
             result.func = search(node.func)
             result.isdynamic = True
             if not result.func:
-                raise "Context passed to unresolved function at {0}".format(node.raw)
+                raise Exception("Context passed to unresolved function at {0}".format(node.raw))
             if not result.func.function:
-                raise "Context passed to non-function at {0}".format(node.raw)
+                raise Exception("Context passed to non-function at {0}".format(node.raw))
 
             result.value = evalf(
                 result.func.function, 
@@ -190,7 +190,7 @@ class Interface:
 
         for node in root.inner:
             # skip comments (shouldn't exist but just in case)
-            if node.directive === DIRECTIVES.COMMENT:
+            if node.directive == DIRECTIVES.COMMENT:
                 continue
 
             # text doesn't need processing
@@ -222,7 +222,7 @@ class Interface:
 
             # get data context -- if null, likely due to nesting into dynamic data, so defer processing
             context = self._process_context(node, domain)
-            if not context:
+            if context is None:
                 processed.inner.append(node)
                 continue
 
@@ -236,7 +236,7 @@ class Interface:
 
         return processed
 
-    def _render_inside_out(root, domain=None, dynamics=None):
+    def _render_inside_out(self, root, domain=None, dynamics=None):
         domain   = domain if domain else self._root
         dynamics = dynamics if dynamics else []
 
@@ -250,7 +250,7 @@ class Interface:
 
             # get context, missing here is either skip or exception thrown
             context = self._process_context(node, domain, dynamics)
-            if not context
+            if context is None:
                 self._missing_handler(node.raw)
                 continue
             # convert to dynamic domain, if necessary
@@ -266,7 +266,7 @@ class Interface:
             pieces = []
             for i in range(context.length):
                 dydom = use_domain.dynamic.get(i)
-                dynamics.push(dydom)
+                dynamics.append(dydom)
                 if self._display(True, dydom):
                     pieces.append(self._render_inside_out(node, dydom, dynamics))
                 dynamics.pop(0)
@@ -292,22 +292,24 @@ class Interface:
                 text += node.text
             elif isinstance(node, str):
                 text += node
+            elif not isinstance(node, Node):
+                text += str(node)
             else:
                 context = self._process_context(node, domain, dynamics)
-                if not context:
+                if context is None:
                     text += self._missing_handler(node.raw)
                 else:
                     text += self._render_value(node, context.value)
         return text
 
-    def _section(node, context, processed, unresolved):
+    def _section(self, node, context, processed, unresolved):
         # Repeating sections recurse inner content to process any non-dynamic referencing tags, but also add 
         # node to processing array for final processing in inside-out rendering.
         if context.isrepeating:
             if node.inclusive and context.length:
                 # Copy section node and replace any in-context shortcuts with full path as it will be handled
                 # later, potentially out of context.
-                dynode = SectionNode(node)
+                dynode = SectionNode(node, None)
                 if dynode.incontext:
                     dynode.key = context.node.fullkey
                     dynode.incontext = False
@@ -319,7 +321,7 @@ class Interface:
                 domain = context.get_domain()
                 # Add to unresolved domains, recurse, pop unresolved domain, add to processing
                 unresolved.append(domain)
-                self._render_outside_in(node, domain, dynode, unresolved, True)
+                self._render_outside_in(node, domain, dynode, unresolved)
                 unresolved.pop(-1)
                 processed.inner.append(dynode)
             return
@@ -327,9 +329,9 @@ class Interface:
         # dynamic data context first.
         domain = context.get_domain();
         if self._display(node.inclusive, domain):
-            self._renderOutsideIn(node, domain, processed, unresolved)
+            self._render_outside_in(node, domain, processed, unresolved)
 
-    def _display(inclusive, domain):
+    def _display(self, inclusive, domain):
         display = domain.value()
         if domain.type == TYPES.OBJECT:
             _display = domain.get("_display")
@@ -337,15 +339,15 @@ class Interface:
                 return _display.value()
         else:
             if isinstance(display, str):
-                display = display.trim()
+                display = display.strip()
             elif isinstance(display, (int, float)):
                 display = display if display != 0 else self._eval_zero_as_true
         return inclusive == bool(display)
 
-    def _partial(node, context):
+    def _partial(self, node, context):
         if not self._partials[node.key]:
             if self.error_on_missing_tags:
-                raise "Render error: missing partial for {0}".format(node.key)
+                raise Exception("Render error: missing partial for {0}".format(node.key))
             print("Render error: missing partial for {0}".format(node.key))
             return ""
         try:
@@ -358,7 +360,7 @@ class Interface:
             print(e)
             return ""
 
-    def _render_value(node, value):
+    def _render_value(self, node, value):
         nformat = node.format
         vtype = type_of(value)
         if vtype <= TYPES.NULL:
@@ -367,7 +369,7 @@ class Interface:
         if node.directive == DIRECTIVES.LIST and vtype == TYPES.ARRAY:
             value = [
                 str(vi) if is_array(vi) else 
-                    format_value(vi, format, node.escape if node.escape else self.escape_all)
+                    format_value(vi, nformat, node.escape if node.escape else self.escape_all)
                 for vi in value
             ]
             vlen = len(value)
@@ -376,7 +378,7 @@ class Interface:
             if vlen == 1:
                 return value[0]
             if vlen == 2:
-                return "{0} and {1}".format(vlen[0], vlen[1])
+                return "{0} and {1}".format(value[0], value[1])
             else:
                 last = value.pop(-1)
                 return "{0}, and {1}".format(", ".join(value), last)
@@ -384,14 +386,8 @@ class Interface:
         if vtype == TYPES.ARRAY:
             value = str(a)
             nformat = False
-        elif vtype = TYPES.OBJECT:
-            # be sure to clear parent reference before stringifying
-            oval = value
-            parent_ref = oval._parent
-            del oval._parent
-            value = json.dumps(oval)
-            if parent_ref:
-                oval._parent = parent_ref
+        elif vtype == TYPES.OBJECT:
+            value = json.dumps(value)
             nformat = False
         # final format and add
-        return format_value(value, format, node.escape if node.escape else self.escape_all)
+        return format_value(value, nformat, node.escape if node.escape is not None else self.escape_all)

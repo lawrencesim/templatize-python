@@ -375,8 +375,8 @@ This gets particularly confusing with repeating contexts but makes sense when yo
 
 ```python
 {'repeat': [1,2,3]} 
-'```
-'
+```
+
 &nbsp; *Outputs:*
 
 ```

@@ -1,12 +1,13 @@
 from lib.interface import Interface
+from lib.template import Template
 
 
 class Templatize:
 
     @staticmethod
-    def render(self, template, bindings, options):
-        return self.from(template, options).render(bindings, options);
+    def render(template, bindings, options=None):
+        return Templatize.make(template, options).render(bindings, options)
 
     @staticmethod
-    def from(self, template, options):
-        return Interface(Template(template, options), options);
+    def make(template, options=None):
+        return Interface(Template(template, options), options)

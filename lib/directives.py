@@ -8,27 +8,29 @@ _symbols = {
     "SECTION_INC":  "#", 
     "SECTION_EXC":  "^", 
     "SECTION_END":  "/", 
-    "PARTIALS":     ">", 
+    "PARTIAL":      ">", 
     "ROOT_PARTIAL": "^", 
     "IN_CONTEXT":   ".", 
     "PASS_CONTEXT": "->", 
     "FORMAT":       "::", 
     "ESCAPE":       ";"
 }
-_symbol_nums = {}
-for i,name in enumerate(list(_symbols.keys())):
-    symbol = _symbols[name]
-    _symbol_nums[symbol] = i + 1
+_symbol_names    = list(_symbols.keys())
+_symbol_chars    = [_symbols[sn] for sn in _symbol_names]
+_symbol_nums     = list(range(1, len(_symbol_names)+1))
+_uq_symbol_chars = list(set(_symbol_chars))
+_uq_symbol_map   = {}
+for sc in _uq_symbol_chars:
+    _uq_symbol_map[sc] = _symbol_nums[_symbol_chars.index(sc)]
 
-_NT_SYM = namedtuple("_NT_SYM", list(_symbols.keys()))
-_NT_DIR = namedtuple("_NT_DIR", list(_symbols.keys())+["TO_SYMBOL", "TO_VALUE"])
-               # name to symbol
-_NT_DIR_VALS = list(_symbols.values()) + [
-    # value to symbol
-    tuple([None] + list(_symbol_nums.keys())), 
-    # symbol to values
-    _symbol_nums
-]
+_NT_symbols = namedtuple("_NT_SYM", _symbol_names)
+SYMBOLS = _NT_symbols(*_symbol_chars)
 
-SYMBOLS = _NT_SYM(*list(_symbols.values()))
-DIRECTIVES = _NT_DIR(*_NT_DIR_VALS)
+_NT_directives = namedtuple("_NT_DIR", _symbol_names+["TO_SYMBOL", "TO_VALUE"])
+DIRECTIVES = _NT_directives(*(
+    _symbol_nums +             # symbol names to values (named tuple)
+    [ ([None]+_symbol_chars),  # values to symbols (simple list)
+      _uq_symbol_map ]         # symbols to values (dictionary)
+))
+
+del _NT_directives, _NT_symbols, _uq_symbol_chars, _uq_symbol_map, _symbol_names, _symbol_chars, _symbol_nums, _symbols

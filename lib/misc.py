@@ -1,7 +1,6 @@
-from collections import namedtuple, abc
+import collections, collections.abc
 
 
-OVERFLOW = 12
 _types = {
     "UNDEFINED":  -1, 
     "NULL":       0, 
@@ -15,8 +14,12 @@ _types = {
     "DICTIONARY": 3, 
     "FUNCTION":   4
 }
-_NT_TYPES = namedtuple("_NT_TYPES", list(_types.keys()))
-TYPES = _NT_TYPES(*list(_types.values()))
+_NT_types = collections.namedtuple("_NT_TYPES", list(_types.keys()))
+
+OVERFLOW = 12
+TYPES = _NT_types(*list(_types.values()))
+
+del _types, _NT_types
 
 
 def is_array(test):
@@ -26,9 +29,9 @@ def is_array(test):
 def type_of(value):
     if value is None:
         return TYPES.NONE
-    if is_array(test):
+    if is_array(value):
         return TYPES.ARRAY
-    if isinstance(value, abc.Mapping):
+    if isinstance(value, collections.abc.Mapping):
         return TYPES.DICTIONARY
     if callable(value):
         return TYPES.FUNCTION
@@ -53,33 +56,40 @@ def evalf(func, context, root, handle_exception=None):
         return handle_exception(e)
 
 
-def format_value(value, format, escape_html=False):
+def format_value(value, format_op, escape_html=False):
     if value is None:
         return ""
-    value = str(value)
-    if format:
-        if format in ("raw", "html"):
+    if format_op:
+        if format_op in ("raw", "html"):
+            value = str(value)
             escape_html = False
-        elif format == "encode":
+        elif format_op == "encode":
+            value = str(value)
             escape_html = True
-        elif format in ("allcaps", "caps", "upper")
-            value = value.upper()
-        elif format in ("lower"):
-            value = value.lower()
-        elif format == "capitalize":
+        elif format_op in ("allcaps", "caps", "upper"):
+            value = str(value).upper()
+        elif format_op in ("lower",):
+            value = str(value).lower()
+        elif format_op == "capitalize":
+            value = str(value)
             new_value = ""
-            for i,c in enumerate(value):
-                if not i or (not c.isspace() and values[c-1].isspace()):
+            for i, c in enumerate(value):
+                if not i or (not c.isspace() and value[i-1].isspace()):
                     new_value += c.upper()
                 else:
                     new_value += c
             value = new_value
         else:
-            value = ("{:"+format+"}").format(value)
+            if format_op[0] == "$":
+                format_op = "${0:"+format_op[1:]+"}"
+            else:
+                format_op = "{0:"+format_op+"}"
+            value = format_op.format(value)
     if escape_html:
-        value = value.replace("&", "&amp;")
-        value = value.replace("<", "&lt;")
-        value = value.replace(">", "&gt;")
-        value = value.replace("\"", "&quot;")
-        value = value.replace("'", "&#039;");
+        value = value.replace("&", "&amp;")   \
+                     .replace("<", "&lt;")    \
+                     .replace(">", "&gt;")    \
+                     .replace("\"", "&quot;") \
+                     .replace("'", "&#039;")
+    return value
     

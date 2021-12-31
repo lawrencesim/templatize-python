@@ -45,16 +45,16 @@ import Templatize from templatize
 rendered = Templatize.render(my_template, bindings)
 ```
 
-However, this will not take advantage of caching the processed template. If reusing the template, first clone a rendering instance from said template using `Templatize.from()`, then call the render function on that.
+However, this will not take advantage of caching the processed template. If reusing the template, first clone a rendering instance from said template using `Templatize.make()`, then call the render function on that.
 
 ```python
 import Templatize from templatize
 
-my_templatizer = Templatize.from(my_template, {'eval_zero_as_true': True})
+my_templatizer = Templatize.make(my_template, {'eval_zero_as_true': True})
 rendered = my_templatizer.render(bindings)
 ```
 
-*Templatize*.**from**(*template*[, *options*])
+*Templatize*.**make**(*template*[, *options*])
 
 &nbsp; &nbsp; &nbsp; &nbsp;**Returns:** (Interface) An instance of the Templatize rendering interface based off this template.
 
@@ -64,7 +64,7 @@ rendered = my_templatizer.render(bindings)
 
 ##### Options
 
-* **`delimiters`** - (*default:* `["{{", "}}"]`) Set custom delimiters here as array of strings. Only available in *Templatize*.**from()** when creating a new instance off a preprocessed template.
+* **`delimiters`** - (*default:* `["{{", "}}"]`) Set custom delimiters here as array of strings. Only available in *Templatize*.**make()** when creating a new instance off a preprocessed template.
 * **`error_on_func_failure`** - (*default:* `False`) If true, throw exceptions resulting from function calls in the data-bindings. Otherwise, simply warns in the console and returns empty for the binding being evaluated.
 * **`eval_zero_as_true`** - (*default:* `False`) If true, zero-values are treated as a real value for section evaluation. See [section value evaluation](#section-value-evaluation).
 * **`escape_all`** - (*default:* `False`) If true, all tags are by default HTML special-character escaped. Any tag printing unescaped code needs the specific formatting directive. See [formatting](#formatting).
@@ -207,10 +207,10 @@ Bob has {{^haspets}}no pets{{/haspets}}{{#haspets}}pets{{/haspets}}.
 
 ```python
 {
-  'married': true, 
-  'single': false, 
+  'married': True, 
+  'single': False, 
   'spouse': "Linda", 
-  'haspets': false
+  'haspets': False
 }
 ```
 
@@ -249,7 +249,7 @@ Within the context of the repeating section, the same tag is temporarily bound t
 &nbsp; *Bindings:*
 
 ```python
-{'children': ["Tina", "Gene", "Louise", "", None, false, 0]}
+{'children': ["Tina", "Gene", "Louise", "", None, False, 0]}
 ```
 
 &nbsp; *Outputs:*
@@ -338,10 +338,10 @@ As the behavior of the function depends on what is returned, it may be used in a
     {'name': "Mort", 'friendly': True}, 
     {'name': "Jimmy Pesto", 'friendly': False}
   ], 
-  'friends': lambda self, root : map(
+  'friends': lambda self, root : list(map(
     lambda person : person['name'], 
     filter(lambda person : person['friendly'], self['relations'])
-  )
+  ))
 }
 ```
 
@@ -429,15 +429,10 @@ Total (w/ tax): {{addTax::$.2f}}
     'BURGER': 5, 
     'FRIES': 2
   }, 
-  'ticket': lambda self, root : map(lambda item : self["prices"][item], self["order"]), 
+  'ticket': lambda self, root : list(map(lambda item : self["prices"][item], self["order"]), )
   'salesTax': 0.05, 
-  'total': lambda self, root : sum(
-    map(
-      lambda item : self["prices"][item]*(1.0+self["salesTax"]), 
-      self.order
-    )
-  ), 
-  'addTax': lambda self, root : self["total"]()*(1+self["salesTax"])
+  'total': lambda self, root : sum(self["prices"][item] for item in self["order"]), 
+  'addTax': lambda self, root : self["total"](self, root) * (1+self["salesTax"])
 }
 ```
 
