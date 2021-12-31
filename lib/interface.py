@@ -9,7 +9,7 @@ import json
 DEFAULT = {
     "error_on_func_failure": False, 
     "eval_zero_as_true":     False, 
-    "escape_all":          False, 
+    "escape_all":            False, 
     "error_on_missing_tags": False
 }
 
@@ -122,7 +122,9 @@ class Interface:
                 self._root = Domain(bindings)
 
             # map partials
-            self._partials = options.partials if options and options.partials else {}
+            self._partials = {}
+            if options and "partials" in options and options["partials"]:
+                self._partials = options["partials"]
             for pkey, partial in self._partials.items():
                 if isinstance(partial, str):
                     try:
@@ -283,7 +285,7 @@ class Interface:
                     processed.append("{0} and {1}".format(pieces[0], pieces[1]))
                 else:
                     last = pieces.pop(-1)
-                    processed.push("{0}, and {1}".format(", ".join(pieces), last))
+                    processed.append("{0}, and {1}".format(", ".join(pieces), last))
 
         # this part will run from inner-most out on all remaining nodes
         text = ""
@@ -335,13 +337,13 @@ class Interface:
         display = domain.value()
         if domain.type == TYPES.OBJECT:
             _display = domain.get("_display")
-            if _display:
+            if _display is not None:
                 return _display.value()
         else:
             if isinstance(display, str):
                 display = display.strip()
             elif isinstance(display, (int, float)):
-                display = display if display != 0 else self._eval_zero_as_true
+                display = display if display != 0 else self.eval_zero_as_true
         return inclusive == bool(display)
 
     def _partial(self, node, context):
@@ -387,7 +389,7 @@ class Interface:
             value = str(a)
             nformat = False
         elif vtype == TYPES.OBJECT:
-            value = json.dumps(value)
+            value = json.dumps(value, default=str)
             nformat = False
         # final format and add
         return format_value(value, nformat, node.escape if node.escape is not None else self.escape_all)

@@ -9,7 +9,11 @@ class DynamicDomain:
         self.children = {}
         self.type     = self.domain.type
 
-    def create(self, dkey, with_data, index):
+    # Get dynamic data domain with custom data. Must also supply unique key modifier.
+    # Dynamic data domain acts as if in the same location as this domain (with same key and parent), but with
+    # dynamic data that is different. Note that if search up to parent and back down, however, it cannot be 
+    # re-found with same key. It is technically stored as a dynamic child of this domain.
+    def create(self, dkey, with_data, index=0):
         dykey = "<{0}:{1}>".format(index if index else 0, dkey)
         if dykey in self.children:
             return self.children[dykey]
@@ -18,6 +22,7 @@ class DynamicDomain:
         self.children[dykey] = context
         return context
 
+    # Get dynamic length.
     def __len__(self):
         if self.type in (TYPES.NULL, TYPES.UNDEFINED):
             return 0
@@ -25,6 +30,8 @@ class DynamicDomain:
             return len(self.domain.data)
         return 1
 
+    # Get dynamic data domain by index. Used for repeating sections to dynamically load the domain of an 
+    # array item. If not an array-type, simply loads the current data.
     def get(self, index, on_func_error=None):
         data = self.domain.data[index] if self.domain.isrepeating else self.domain._eval(on_func_error)
         return self.create("", data, index)
@@ -36,7 +43,7 @@ class Domain:
         self.fullkey       = fullkey if fullkey else ""
         self.prefix        = self.fullkey + "." if self.fullkey else self.fullkey
         self.prefixlen     = len(self.prefix.split(".")) - 1
-        self.data          = data if data else {}
+        self.data          = data if data is not None else {}
         self.function      = None
         self.type          = type_of(self.data)
         self.parent        = parent if parent else None
@@ -45,11 +52,6 @@ class Domain:
         self.children      = {".": self}
         self.isrepeating   = False
         self.dynamic       = DynamicDomain(self)
-        #     'children': {}, 
-        #     'length':   self.length_dynamic, 
-        #     'get':      self.get_dynamic, 
-        #     'create':   self.create_dynamic
-        # };
         # function store reference to function, data is f() output but resolved whenever first called
         if self.type == TYPES.FUNCTION:
             self.function = self.data
@@ -87,7 +89,6 @@ class Domain:
         self._eval(on_func_error)
         # check cache
         if not skip_cache and fullkey in self.cache:
-            print(self.cache[fullkey])
             return self.cache[fullkey]
         # can't normal 'get' children of repeating sections (use getDynamic)
         if self.isrepeating:
@@ -100,33 +101,6 @@ class Domain:
         subcontext = Domain(self.data[key], fullkey, self)
         self.cache[fullkey] = self.children[key] = subcontext
         return subcontext
-
-    # Get dynamic length.
-    # def length_dynamic(self):
-    #     if self.type in (TYPES.NULL, TYPES.UNDEFINED):
-    #         return 0
-    #     if self.type == TYPES.ARRAY:
-    #         return len(self.data)
-    #     return 1
-
-    # Get dynamic data domain with custom data. Must also supply unique key modifier.
-    # Dynamic data domain acts as if in the same location as this domain (with same key and parent), but with
-    # dynamic data that is different. Note that if search up to parent and back down, however, it cannot be 
-    # re-found with same key. It is technically stored as a dynamic child of this domain.
-    # def create_dynamic(self, dkey, with_data, index):
-    #     dykey = "<{0}:{1}>".format(index if index else 0, dkey)
-    #     if dykey in self.dynamic.children:
-    #         return self.dynamic.children[dykey]
-    #     context = Domain(with_data, self.fullkey, self.parent)
-    #     context.cache = {}  # disconnect cache for dynamic contexts
-    #     self.dynamic.children[dykey] = context
-    #     return context
-
-    # Get dynamic data domain by index. Used for repeating sections to dynamically load the domain of an 
-    # array item. If not an array-type, simply loads the current data.
-    # def get_dynamic(self, index, on_func_error=None):
-    #     data = self.data[index] if self.isrepeating else self._eval(on_func_error)
-    #     return self.create_dynamic("", data, index)
 
     # Check if node is in this context (lazy search, doesn't check if most specific).
     def incontext(self, fullkey_or_node):

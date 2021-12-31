@@ -213,7 +213,7 @@ Lists may contain objects or functions as well. In objects, you can use the `_di
     {'firstName': "Tina"}, 
     {'firstName': "Gene"}, 
     {'firstName': "Louise"}, 
-    {'firstName': "Kuchi-Kopi", '_display': false}
+    {'firstName': "Kuchi-Kopi", '_display': False}
   ]
 }
 ```
@@ -310,11 +310,11 @@ Nested sections should behave as expected, even mixing regular versus repeating 
       'hobbies': ["butts", "Equestranauts", "Boyz 4 Now"]
     }, 
     {
-      'name': {first: "Gene"},
-      hobb'ies: ["music", "farts"]
+      'name': {'first': "Gene"},
+      'hobbies': ["music", "farts"]
     }, 
     {
-      'name': {first: "Louise"},
+      'name': {'first': "Louise"},
       'hobbies': ["mischief"]
     }
   ]

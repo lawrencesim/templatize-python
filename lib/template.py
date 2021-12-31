@@ -11,7 +11,7 @@ class Template:
 
     def __init__(self, template, options=None):
         self.root  = RootNode()
-        delimiters = DEFAULT["delimiters"] if not options or not options["delimiters"] else options.delimiters
+        delimiters = DEFAULT["delimiters"]
         last       = 0
         search     = 0
         dopen      = 0
@@ -21,6 +21,8 @@ class Template:
         nest       = 0
         raw        = None
         node       = None
+        if options and "delimiters" in options:
+            delimiters = options["delimiters"]
         while True:
             # find opening delimiter
             dopen = template.find(delimiters[0], search)

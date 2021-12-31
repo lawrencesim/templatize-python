@@ -85,6 +85,8 @@ def format_value(value, format_op, escape_html=False):
             else:
                 format_op = "{0:"+format_op+"}"
             value = format_op.format(value)
+    else:
+        value = str(value)
     if escape_html:
         value = value.replace("&", "&amp;")   \
                      .replace("<", "&lt;")    \

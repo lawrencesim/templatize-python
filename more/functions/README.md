@@ -25,10 +25,10 @@ As the behavior of the function depends on what is returned, it may be used in a
     {'name': "Mort", 'friendly': True}, 
     {'name': "Jimmy Pesto", 'friendly': False}
   ], 
-  'friends': lambda self, root : map(
+  'friends': lambda self, root : list(map(
     lambda person : person['name'], 
     filter(lambda person : person['friendly'], self['relations'])
-  )
+  ))
 }
 ```
 
@@ -144,8 +144,8 @@ Functions are evaluated when they are first called (or never if they are not). A
 
 ```python
 def count(self, root):
-  root.i += 1
-  return root
+  root["i"] += 1
+  return root["i"]
 
 {
   'i': 0, 
