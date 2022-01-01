@@ -211,38 +211,121 @@ test_functions_4 = {
     }, 
     "expected": r"1, 2-2, 1-2, 3-2"
 }
-# test_ = {
-#     "template": r"", 
-#     "bindings": , 
-#     "expected": r""
-# }
-# test_ = {
-#     "template": r"", 
-#     "bindings": , 
-#     "expected": r""
-# }
+test_advanced_1 = {
+    "template": r"{{#a}}{{a}} => {{#a}}{{.}} {{/a}}<br />{{/a}}", 
+    "bindings": {'a': [[0,1], [2,3], []]}, 
+    "expected": r"[0, 1] => 1 <br />[2, 3] => 2 3 <br />[] => <br />"
+}
+test_advanced_2 = {
+    "template": r"{{#a}}{{.}} => {{#.}}{{.}} {{/.}}<br />{{/a}}", 
+    "bindings": {'a': [[0,1], [2,3], []]}, 
+    "expected": r"[0, 1] => 1 <br />[2, 3] => 2 3 <br />[] => <br />"
+}
+test_advanced_3 = {
+    "template": r"{{#people}}{{#funcs}}{{people->funcs}}{{/funcs}}<br />{{/people}}", 
+    "bindings": {
+      'people': [ 
+        {
+          'name': {'first': "Linda", 'last': "Belcher"}, 
+          'friendly': True
+        }, 
+        {
+          'name': {'first': "Teddy", 'last': ""}, 
+          'friendly': True
+        }, 
+        {
+          'name': {'first': "Jimmy", 'last': "Pesto"}, 
+          'friendly': False
+        } 
+      ], 
+      'funcs': [
+        lambda self, root : 1 if 'name' not in self else "{0} {1}<br />".format(self['name']['first'], self['name']['last']),
+        lambda self, root : 1 if 'name' not in self else ("- is family<br />" if self['name']['last'] == "Belcher" else ""),
+        lambda self, root : 1 if 'name' not in self else ("- is a friend<br />" if self['friendly'] else "")
+      ]
+    }, 
+    "expected": r"Linda Belcher<br />- is family<br />- is a friend<br /><br />Teddy <br />- is a friend<br /><br />Jimmy Pesto<br /><br />"
+}
+test_advanced_4 = {
+    "template": r"1. {{&removeFirst.list}}<br />2. {{&removeFirst->removeFirst}}<br />3. {{#removeFirst->removeFirst}}{{&.list}}{{/removeFirst}}", 
+    "bindings": {
+      'list': ["one", "two", "three", "four"], 
+      'removeFirst': lambda self, root : {'list': self['list'][1:]}
+    }, 
+    "expected": r'1. two, three, and four<br />2. {"list": ["three", "four"]}<br />3. three and four'
+}
+test_advanced_5 = {
+    "template": r"{{#burger}}Available toppings:<br />{{#.toppings}}{{spacer}}- {{.}}<br />{{/.toppings}}{{/burger}}", 
+    "bindings": {
+      'spacer': "&nbsp;&nbsp;&nbsp;&nbsp;",
+      'burger': {
+        'toppings': ["cheese", "onions", "lettuce", "tomato"]
+      }
+    }, 
+    "expected": r"Available toppings:<br />&nbsp;&nbsp;&nbsp;&nbsp;- cheese<br />&nbsp;&nbsp;&nbsp;&nbsp;- onions<br />&nbsp;&nbsp;&nbsp;&nbsp;- lettuce<br />&nbsp;&nbsp;&nbsp;&nbsp;- tomato<br />"
+}
+test_advanced_6 = {
+    "template": r"{{#burger}}Available add-ons:<br />{{#.addons->withPrices}}{{spacer}}- {{.name}} +{{.price::$.2f}}<br />{{/.addons}}{{/burger}}", 
+    "bindings": {
+      'spacer': "&nbsp;&nbsp;&nbsp;&nbsp;",
+      'burger': {
+        'addons': ["cheese", "bacon", "avocado"]
+      }, 
+      'prices': { 
+        'cheese': 0.5, 
+        'bacon': 2, 
+        'avocado': 1.5
+      }, 
+      'withPrices': lambda self, root : list(map(
+        lambda name : {'name': name, 'price': root['prices'][name]}, 
+        self
+      ))
+    }, 
+    "expected": r"Available add-ons:<br />&nbsp;&nbsp;&nbsp;&nbsp;- cheese +$0.50<br />&nbsp;&nbsp;&nbsp;&nbsp;- bacon +$2.00<br />&nbsp;&nbsp;&nbsp;&nbsp;- avocado +$1.50<br />"
+}
+def test_functions_7_func(self, root):
+  root["i"] += 1
+  return root["i"]
+test_advanced_7 = {
+    "template": r"{{#outer}}{{#section}}{{.->count}}{{/section}} - {{.->count}} - {{#inner}}{{.->count}} {{/inner}}<br />{{/outer}}",
+    "bindings": {
+      'i': 0, 
+      'outer': [1,2,3], 
+      'inner': [1,2], 
+      'section': True, 
+      'count': test_functions_7_func
+    }, 
+    "expected": r"1 - 4 - 2 3 <br />1 - 7 - 5 6 <br />1 - 10 - 8 9 <br />"
+}
 
 
 for i,test in enumerate([
-    # test_basic_1, 
-    # test_basic_2, 
-    # test_basic_list, 
-    # test_basic_section_1, 
-    # test_basic_section_2, 
-    # test_basic_context, 
-    # test_basic_formatting_1, 
-    # test_basic_formatting_2, 
-    # test_sections_1, 
-    # test_sections_2, 
-    # test_sections_3, 
-    # test_sections_4, 
-    # test_sections_5, 
-    # test_sections_6, 
-    # test_sections_7, 
-    test_functions_1, 
-    test_functions_2, 
-    test_functions_3, 
-    test_functions_4
+    test_basic_1,
+    test_basic_2,
+    test_basic_list,
+    test_basic_section_1,
+    test_basic_section_2,
+    test_basic_context,
+    test_basic_formatting_1,
+    test_basic_formatting_2,
+    test_sections_1,
+    test_sections_2,
+    test_sections_3,
+    test_sections_4,
+    test_sections_5,
+    test_sections_6,
+    test_sections_7,
+    test_functions_1,
+    test_functions_2,
+    test_functions_3,
+    test_functions_4,
+    test_advanced_1,
+    test_advanced_2,
+    test_advanced_3,
+    test_advanced_4,
+    test_advanced_5,
+    test_advanced_6,
+    test_advanced_7
 ]):
     print("------Test {0}------".format(i+1))
     rendered = Templatize.render(test["template"], test["bindings"], test["options"] if "options" in test else None)

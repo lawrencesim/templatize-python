@@ -8,7 +8,7 @@
 
 &nbsp; 
 
-#### Mutli-dimensional arrays
+#### Multi-dimensional arrays
 
 By using the in-context directive, you can access multi-dimensional arrays.
 
@@ -29,9 +29,9 @@ By using the in-context directive, you can access multi-dimensional arrays.
 &nbsp; *Outputs:*
 
 ```
-[0,1] => 1
-[2,3] => 2 3
-[] =>
+[0, 1] => 1
+[2, 3] => 2 3
+[] => 
 ```
 
 The tag before the `=>` prints the raw array value. As this is within a repeating section, the value is evaluated for each iterated item of the array (not the top-level array 'a' itself). 
@@ -141,7 +141,7 @@ When passing a function as a context to itself, the function will first be evalu
 
 ```
 1. two, three, and four
-2. {"list":["three","four"]}
+2. {"list": ["three", "four"]}
 3. three and four
 ```
 
@@ -220,10 +220,10 @@ When using a context-passed-to-function as the section tag, this will create the
     'bacon': 2, 
     'avocado': 1.5
   }, 
-  'withPrices': lambda self, root : map(
+  'withPrices': lambda self, root : list(map(
     lambda name : {'name': name, 'price': root['prices'][name]}, 
     self
-  )
+  ))
 }
 ```
 
@@ -265,8 +265,8 @@ In the below, the `count` function is always passed to a context to force re-eva
 
 ```python
 def count(self, root):
-  root.i += 1
-  return root.i
+  root["i"] += 1
+  return root["i"]
 
 {
   'i': 0, 

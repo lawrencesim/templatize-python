@@ -44,7 +44,7 @@ def evalf(func, context, root, handle_exception=None):
     try:
         val = func
         i = 0
-        while(callable(val)):
+        while callable(val):
             i += 1
             if i >= OVERFLOW:
                 break

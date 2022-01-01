@@ -115,7 +115,7 @@ class TagNode(Node):
                 self.format = self.format[0:-1]
             # convert pass-to-function key to node
             if self.func:
-                self.func = PassToFunctionNode(self.func, self);
+                self.func = PassToFunctionNode(self.func, self)
         # final key  check
         self.key = self.key.strip()
         if not len(self.key) and not self.incontext:
@@ -126,7 +126,7 @@ class TagNode(Node):
 
 
 class PassToFunctionNode(Node):
-    def __init__(self, key, context_node):
+    def __init__(self, key, context_node=None):
         if isinstance(key, PassToFunctionNode):
             super().__init__(key.key)
             self.incontext = key.incontext

@@ -216,7 +216,7 @@ class Interface:
                 for u in unresolved:
                     if check_node and u.incontext(node.key):
                         cant_resolve = True
-                    if node.func and u.incontext(node.func.key):
+                    elif node.func and u.incontext(node.func.key):
                         cant_resolve = True
                 if cant_resolve:
                     processed.inner.append(node)
@@ -234,7 +234,7 @@ class Interface:
                 continue
 
             # render straight values unless it depends on dynamic context (those defer till 2nd round)
-            processed.inner.append(self._render_value(node, context.value));
+            processed.inner.append(self._render_value(node, context.value))
 
         return processed
 
@@ -271,7 +271,7 @@ class Interface:
                 dynamics.append(dydom)
                 if self._display(True, dydom):
                     pieces.append(self._render_inside_out(node, dydom, dynamics))
-                dynamics.pop(0)
+                dynamics.pop(-1)
             # either just add nodes to processed or convert to grammatic list
             if not node.list:
                 processed += pieces
@@ -326,12 +326,12 @@ class Interface:
                 self._render_outside_in(node, domain, dynode, unresolved)
                 unresolved.pop(-1)
                 processed.inner.append(dynode)
-            return
         # Standard sections simple recurse inner content to render. Only thing is checking for creation of 
         # dynamic data context first.
-        domain = context.get_domain();
-        if self._display(node.inclusive, domain):
-            self._render_outside_in(node, domain, processed, unresolved)
+        else:
+            domain = context.get_domain()
+            if self._display(node.inclusive, domain):
+                self._render_outside_in(node, domain, processed, unresolved)
 
     def _display(self, inclusive, domain):
         display = domain.value()
@@ -339,6 +339,9 @@ class Interface:
             _display = domain.get("_display")
             if _display is not None:
                 return _display.value()
+        elif domain.type == TYPES.ARRAY and not len(display):
+            # discrepancy from javascript where empty arrays are still truthy
+            display = True
         else:
             if isinstance(display, str):
                 display = display.strip()
@@ -386,7 +389,7 @@ class Interface:
                 return "{0}, and {1}".format(", ".join(value), last)
         # other non-value types, convert to string
         if vtype == TYPES.ARRAY:
-            value = str(a)
+            value = str(value)
             nformat = False
         elif vtype == TYPES.OBJECT:
             value = json.dumps(value, default=str)

@@ -118,7 +118,7 @@ class Domain:
             return self.cache[fullkey]
         # if exactly at, return self
         if not len(keysplit) or self.fullkey == fullkey:
-            return self;
+            return self
         if bubble: 
             # reverse search condition when in context or at root (can always bubble out of dynamic domain)
             if not self.parent:
@@ -133,10 +133,10 @@ class Domain:
             # continue bubbling (if exiting dynamic, reset 'atstart' to try parent's cache)
             return self.parent._search(fullkey, keysplit, on_func_error, True, self.isrepeating)
         # to handle names with periods in them (user-error by try to work with), append key parts till match
-        key = "";
+        key = ""
         for k, skey in enumerate(keysplit):
             key += skey
-            subcontext = self.get(key, on_func_error, True);
+            subcontext = self.get(key, on_func_error, True)
             if subcontext:
                 if subcontext == self:
                     return self  # special case when key="."
