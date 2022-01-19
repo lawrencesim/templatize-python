@@ -16,7 +16,7 @@ Lawrence Sim © 2022
     * [Scoping and context](#scoping-and-the-context-directive)
     * [Functions](#functions)
     * [Formatting](#formatting)
-* [More Topics](#more-topics)
+* [More Topics (including comparison with Mustache)](#more-topics)
 * [Acknowledgments](#acknowledgments)
 
 ----------
@@ -27,9 +27,15 @@ Lawrence Sim © 2022
 
 ## Usage
 
+Import Templatize from wherever your library is installed. E.g.:
+
+```python
+from templatize import Templatize
+```
+
 The most basic use-case will simply call the `Templatize.render()` function.
 
-*Templatize*.**render**(*template*, *bindings*[, *options*])
+<a href="templatize-from" name="templatize-from">#</a> *Templatize*.**render**(*template*, *bindings*[, *options*])
 
 | Name | Type | Description |
 | --- | --- | :--- |
@@ -54,15 +60,15 @@ my_templatizer = Templatize.make(my_template, {'eval_zero_as_true': True})
 rendered = my_templatizer.render(bindings)
 ```
 
-*Templatize*.**make**(*template*[, *options*])
+<a href="templatize-from" name="templatize-from">#</a> *Templatize*.**make**(*template*[, *options*])
 
 &nbsp; &nbsp; &nbsp; &nbsp;**Returns:** (Interface) An instance of the Templatize rendering interface based off this template.
 
-*Interface*.**render**(*bindings*[, *options*])
+<a href="templatize-instance-render" name="templatize-instance-render">#</a> *Interface*.**render**(*bindings*[, *options*])
 
 &nbsp; &nbsp; &nbsp; &nbsp;**Returns:** (str) The rendered template.
 
-##### Options
+### Options
 
 * **`delimiters`** - (*default:* `["{{", "}}"]`) Set custom delimiters here as array of strings. Only available in *Templatize*.**make()** when creating a new instance off a preprocessed template.
 * **`error_on_func_failure`** - (*default:* `False`) If true, throw exceptions resulting from function calls in the data-bindings. Otherwise, simply warns in the console and returns empty for the binding being evaluated.
@@ -98,8 +104,8 @@ Variables are the most basic use-case, where the tag will render the data-bindin
 
 ```python
 {
-  'age': 46, 
-  'name': { 'first': "Bob" }
+  'name': { 'first': "Bob" }, 
+  'age': 46
 }
 ```
 
@@ -110,6 +116,8 @@ Bob is 46 years old.
 ```
 
 The default behavior is to treat missing bindings as empty. You may also throw an exception when encounter a missing binding by setting the `error_on_missing_tags` parameter in [the render options](#options).
+
+&nbsp; 
 
 ### Comments and escaping
 
@@ -125,8 +133,8 @@ Both comments and escaping is done with a bang directive (`!`). For comments, pl
 
 ```python
 {
-  'age': 46, 
-  'name': { 'first': "Bob" }
+  'name': { 'first': "Bob" }, 
+  'age': 46
 }
 ```
 
@@ -136,11 +144,13 @@ Both comments and escaping is done with a bang directive (`!`). For comments, pl
 Bob is {{age}} years old.
 ```
 
+&nbsp; 
+
 ### Naming restrictions
 
 **Restrictions for property names**
 
-* `_display` is a special keyword. While it is meant to be set (see the [`_display` parameter](./more/sections/#the-_display-parameter)), it should only be done when specifically calling said functionality.
+* `_display` is a special keyword. While it is meant to be set (see the [_display parameter](./more/sections/#the-_display-parameter)), it should only be done when specifically calling said functionality.
 * Any property name with a leading bang (`!`) will be treated as an [comment](#comments-and-escaping) in the template code.
 * Any property name with a leading directive used for [lists](#lists) and [sections](#sections) -- which include ampersand (`&`), hash (`#`), and caret (`^`) -- will be interpreted as such and not considered part of the key name.
 * Ending a property name with a semi-colon (`;`) will be interpreted as the escape [formatting](#formatting) directive and not part of the key name.
@@ -157,21 +167,21 @@ Bob is {{age}} years old.
 
 ## Lists
 
-Lists are marked with an ampersand (`&`) and can take in an array (or a function that returns an array). The output is grammatically formatted with appropriate use of commas and/or the 'and'-conjunction, as dictated by the length of the list. No other dynamic text or subsections should be nested within a list and values within the array should be strings or numbers only for best results.
+Lists are marked with an ampersand (`&`) and can take in an array (or a function that returns an array). The output is grammatically formatted with appropriate use of commas and/or the 'and'-conjunction, as dictated by the length of the list. No other dynamic text or subsections should be nested within a list, and values within the array should be strings or numbers only for best results.
 
 One special case exists with the list functionality, the combination of the list and section directive (`&#`) which can be used to [grammatically list repeating sections](./more/sections#repeating-list-sections).
 
 &nbsp; *Template:*
 
 ```
-{{&name::capitalize}} sells {{&sells}} with {{&with}}. 
+{{&name}} sells {{&sells}} with {{&with}}. 
 ```
 
 &nbsp; *Bindings:*
 
 ```python
 {
-  'name': ["bob"], 
+  'name': ["Bob"], 
   'sells': ["burgers", "sodas", "fries"], 
   'with': ["his wife", "kids"]
 }
@@ -191,7 +201,7 @@ Bob sells burgers, sodas, and fries with his wife and kids.
 
 ## Sections
 
-Section starts are tags with the `#`-directive and the sections end at tags with the `/`-directive. If the data bound to the section tag evaluates as true, it will be shown, and hidden if it evaluates to false. You may also use an inverse section by replacing the hash (`#`) with a caret (`^`). Such sections will only be displayed if the section is evaluated to `false`.
+Section starts are tags with the `#`-directive and the sections end at tags with the `/`-directive. If the data bound to the section tag evaluates as true, it will be shown, and hidden if it evaluates to false. You may also use an inverse section by replacing the hash (`#`) with a caret (`^`). Such sections will only be displayed if the section is evaluated to false.
 
 Data may be put inside of a section, whether from elsewhere or the same data-binding.
 
@@ -224,11 +234,11 @@ Bob has no pets.
 
 ### Section value evaluation
 
-The data bound to a section tag is evaluated for 'truthiness'. Values of `None`, an empty string or a string composed only of whitespace, an empty list, and `0` evaluate as False (though in certain cases you may want to [treat 0-values as true](./more/sections/#treating-zero-values-as-true)). Otherwise, as long as data-binding for section evaluates to true, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value. 
+The data bound to a section tag is evaluated for 'truthiness'. `None` values, an empty string or a string composed only of whitespace, an empty list, and `0` evaluate as false (though in certain cases you may want to [treat 0-values as true](./more/sections/#treating-zero-values-as-true)). Otherwise, as long as data-binding for section evaluates to true, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value. 
 
 &nbsp;
 
-##### More on sections
+### More on sections
 
 See additional documentation for more on [sections](./more/sections/), including [section value evaluation](./more/sections/#section-value-evaluation), the [`_display` parameter](./more/sections/#the-_display-parameter), and more.
 
@@ -236,7 +246,7 @@ See additional documentation for more on [sections](./more/sections/), including
 
 ### Repeating Sections
 
-If the value bound to a section tag is an list (or function that evaluates to an list), the section will be repeated for as many items as exists in the list. 
+If the value bound to a section tag is a list (or function that evaluates to an list), the section will be repeated for as many items as exists in the list. 
 
 Within the context of the repeating section, the same tag is temporarily bound to the value of each item during each iteration. Thus the below section tag key and value key are the same for this list of flat values.
 
@@ -264,7 +274,7 @@ Note that each item is also treated to the same [section value evaluation](./mor
 
 &nbsp;
 
-##### More on repeating sections
+### More on repeating sections
 
 See additional documentation for more on [repeating sections](./more/sections/#repeating-sections).
 
@@ -305,7 +315,7 @@ Friends: {{#friends}}{{.}} {{/friends}}
 Friends: Teddy Mort
 ```
 
-Note however that line 2 does not render as the reference to `first` is not specified as under the `name` context or given an in-context directive, and the property `first` does not exist under the root binding dictionary.
+Note that line 2 does not render as the reference to `first` is not specified as under the `name` context via dot notation nor given an in-context directive, and the property `first` does not exist under the root binding dictionary.
 
 
 &nbsp;
@@ -313,9 +323,9 @@ Note however that line 2 does not render as the reference to `first` is not spec
 
 ## Functions
 
-Functions are evaluated to determine the returned value. All functions are given the input parameters `self` and `root`. The context of the `self` will be the context of the data-binding dictionary where it resides (called as if a class function).
+Functions are evaluated to determine the returned value. All functions are given the input parameters `self` and `root`. The variable `self` will be the context of the data-binding dictionary where it resides (called as if a class function), and `root` will be the full/root data-binding dictionary.
 
-As the behavior of the function depends on what is returned, it may be used in a variety of contexts.
+As the behavior of the function depends on what is returned, it may be used in a variety of contexts, such as using the function output as a section or list.
 
 &nbsp; *Template:*
 
@@ -351,13 +361,15 @@ As the behavior of the function depends on what is returned, it may be used in a
 Bob Belcher's friends include Teddy and Mort.
 ```
 
+&nbsp;
+
 ### Error handling
 
-By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be an empty string. To change this, simply set the `errorOnFuncFailure` flag to `true` in the [options](../README.md#options).
+By default, functions fail silently. If an error occurs during function call, exception is not raised further and value is assumed to be an empty string. To change this, simply set the `error_on_func_failure` flag to `true` in the [options](../README.md#options).
 
 &nbsp;
 
-##### More on functions
+### More on functions
 
 Functions are arguably the most powerful (and sometimes frustrating) aspect of Templatize, especially paired with the [pass-context-to-function directive](./more/functions/#passing-context-to-functions). This section only covers the most superficial use of functions.
 
@@ -372,7 +384,7 @@ See additional documentation for more on [functions](./more/functions/).
 Formatting options are also available by suffixing the property name in the template code with a double-colon (`::`) and format directive. For strings, a few of the commonly recognized values are detailed in the below table. If not recognized, Templatize passes the format directive to python's `str.format()`.
 
 
-* **html** - If the [option](#options) `escapeAll` is set true, this directive sets the output not to escape HTML special characters.
+* **html** - If the [option](#options) `escape_all` is set true, this directive sets the output not to escape HTML special characters.
     * **raw** - Same as above.
 * **encode** - Encodes HTML special characters in rendered output.
 * **upper** - Transforms all alphabetical characters to uppercase.

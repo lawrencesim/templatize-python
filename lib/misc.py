@@ -16,7 +16,7 @@ _types = {
 }
 _NT_types = collections.namedtuple("_NT_TYPES", list(_types.keys()))
 
-OVERFLOW = 12
+OVERFLOW = 99
 TYPES = _NT_types(*list(_types.values()))
 
 del _types, _NT_types

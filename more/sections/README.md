@@ -1,6 +1,6 @@
 ## Sections
 
-Section starts are tags with the `#`-directive and the sections end at tags with the `/`-directive. If the data bound to the section tag evaluates as true, it will be shown, and hidden if it evaluates to false. You may also use an inverse section by replacing the hash (`#`) with a caret (`^`). Such sections will only be displayed if the section is evaluated to `false`.
+Section starts are tags with the `#`-directive and the sections end at tags with the `/`-directive. If the data bound to the section tag evaluates as true, it will be shown, and hidden if it evaluates to false. You may also use an inverse section by replacing the hash (`#`) with a caret (`^`). Such sections will only be displayed if the section is evaluated to false.
 
 Data may be put inside of a section, whether from elsewhere or the same data-binding.
 
@@ -35,7 +35,7 @@ Bob has no pets.
 
 ### Section value evaluation
 
-The data bound to a section tag is evaluated for 'truthiness'. Values of `None`, an empty string or a string composed only of whitespace, and `0` evaluate as False (though in certain cases you may want to [treat 0-values as true](#treating-zero-values-as-true)). Empty lists are treated as True (unlike standard Python behavior). Otherwise, as long as data-binding for section evaluates to true, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value.
+The data bound to a section tag is evaluated for 'truthiness'. Values of `None`, an empty string or a string composed only of whitespace, and `0` evaluate as false (though in certain cases you may want to [treat 0-values as true](#treating-zero-values-as-true)). **Empty lists are treated as true (unlike standard Python behavior).** Otherwise, as long as data-binding for section evaluates to true, it will be treated as such. You may use this as a shortcut for both displaying the section and formatting its value.
 
 &nbsp;
 
@@ -121,7 +121,7 @@ Sunday - Closed
 Saturday - $122.00
 ```
 
-By setting `eval_zero_as_true` to true in the [options](../../#options), you can change this behavior to treat zero-values as truthy. Which will change to output as follows.
+By setting `eval_zero_as_true` to true in the [options](../../README.md#options), you can change this behavior to treat zero-values as truthy. Which will change to output as follows.
 
 &nbsp; *Outputs:*
 
@@ -136,7 +136,7 @@ Saturday - $122.00
 
 ### The `_display` parameter
 
-Section data may still be filled out but removed/hidden if a `_display` variable exists and evaluates to False (this behavior evaluates truthiness by standard python conventions).
+Section data may still be filled out but removed/hidden if a `_display` variable exists and evaluates to false (this behavior evaluates truthiness by standard python conventions).
 
 &nbsp; *Template:*
 
@@ -163,7 +163,7 @@ Occupation:
 Bob is a chef.
 ```
 
-Note in the above that `_display` does not reverse the behavior of inverse sections (the section `{{^job}}Unemployed{/job}}` is still hidden as `job` itself is not evaluated to `false`). Also, nested section data may still be accessed and rendered outside of the section, even if the section itself is set not to display.
+Note in the above that `_display` does not reverse the behavior of inverse sections (the section `{{^job}}Unemployed{/job}}` is still hidden as `job` itself is not evaluated to false). Also, nested section data may still be accessed and rendered outside of the section, even if the section itself is set not to display.
 
 
 &nbsp;
@@ -195,9 +195,9 @@ Child: Gene
 Child: Louise
 ```
 
-Note that each item is also treated to the same [section value evaluation](./more/sections/#section-value-evaluation) to determine whether it is rendered.
+Note that each item is also treated to the same [section value evaluation](#section-value-evaluation) to determine whether it is rendered.
 
-Lists may contain objects or functions as well. In objects, you can use the `_display` parameter to hide a particular item, same as you would for a section. Below, we also take advantage of the [in-context directive](#../#scoping-and-the context-directive).
+Lists may contain objects or functions as well. In objects, you can use the `_display` parameter to hide a particular item, same as you would for a section. Below, we also take advantage of the [in-context directive](../../README.md#scoping-and-the context-directive).
 
 &nbsp; *Template:*
 
@@ -329,7 +329,7 @@ Gene Belcher's hobbies include music and farts.
 Louise Belcher's hobbies include mischief.
 ```
 
-For standard sections, nesting sections, even within itself, adds no major complication as sections are simply treated as on/off tags. However, when dealing with repeating sections or sections created with dynamic data (e.g. [mixing pass-to-function directing in a section tag](../advanced/#mixing-directives-in-a-section-tag)), the inner context will be specific to the directly nested section.
+For standard sections, nesting sections, even within itself, adds no major complication as sections are simply treated as on/off tags. However, when dealing with repeating sections or sections created with dynamic data (e.g. [mixing pass-to-function directing in a section tag](../advanced/#mixing-directives-in-a-section-tag)), the inner context will be specific to the nested section in which it is called.
 
 &nbsp; *Template:*
 
@@ -357,9 +357,9 @@ For standard sections, nesting sections, even within itself, adds no major compl
 3 -- 1
 ```
 
-Note the first output is `3` due to being in two nested where the contexts are incremented. However, when `n` is called again outside the nesting, the value of `n` is unchanged outside of the previous contexts.
+Note the first output is `3` due to being in two nested blocks where the contexts are incremented. However, when `n` is called again outside the nesting, the value of `n` is unchanged outside of the previous contexts.
 
-This gets particularly confusing with repeating contexts but makes sense when you consider the context changes instead each nested section.
+This gets particularly confusing with repeating contexts but makes sense when you consider the context changes inside each nested section.
 
 &nbsp; *Template:*
 

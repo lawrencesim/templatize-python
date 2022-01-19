@@ -1,8 +1,6 @@
 ## Templatize vs Mustache.js
 
-It's not a competition, but it's worth mentioning why there's a big library that emulates most of what [Mustache.js](https://github.com/janl/mustache.js/) does, while while they are similar there are enough differences to make switching between incompatible beyond the basic variables and sections.
-
-&nbsp;
+It's not a competition, but it's worth mentioning why there's a big library that emulates most of what [Mustache.js](https://github.com/janl/mustache.js/) does. While they are similar in many ways, there are enough differences to make switching between incompatible beyond the basic variables and sections.
 
 #### Differences
 
@@ -53,12 +51,12 @@ Templatize has [an option to evaluate zero-values as true](../../#options). Some
 
 #### Which is better?
 
-Both run quickly -- depending on input template and data, of course -- the first pass render will be on the order of a one to a few milliseconds and subsequent passes on the same template (utilizing caching strategies on the parsed template) will be multiple times faster. But in general, Mustache.js is faster.
+Both run quickly -- depending on input template and data of course -- the first pass render will be on the order of a one to a few milliseconds and subsequent passes on the same template (utilizing caching strategies on the parsed template) will be multiple times faster. But in general, Mustache.js is faster.
 
 The dynamic way Templatize treats functions, sections, and repeating-sections have added some overhead to the data-binding handling and rendering procedures that come at a minor cost. That said, outside of some exceptional cases, there is unlikely to be a factor in which either rendering library is a limiting factor.
 
 Templatize has much more versatility with the enhanced power for functions and ability to pass data to them. That said, most uses cases wouldn't need them or could work around them by preprocessing the data-bindings first.
 
-That said, this has really just become a pet project of mine, so considering the larger developing community, support, active development, and user-base, Mustache.js is probably, maybe, subjectively better for most use cases :)
+This has really just become a pet project of mine, so considering the larger developing community, support, active development, and user-base, Mustache.js is probably, maybe, very-slightly, subjectively better for most use cases :)
 
 &nbsp;

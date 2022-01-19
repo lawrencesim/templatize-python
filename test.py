@@ -39,7 +39,8 @@ test_basic_section_1 = {
 test_basic_section_2 = {
     "template": r"{{#children}}Child: {{children}}<br />{{/children}}", 
     "bindings": {'children': ["Tina", "Gene", "Louise", "", None, False, 0]}, 
-    "expected": r"Child: Tina<br />Child: Gene<br />Child: Louise<br />"}
+    "expected": r"Child: Tina<br />Child: Gene<br />Child: Louise<br />"
+}
 test_basic_context = {
     "template": r"{{#name}}1. {{name.first}}{{/name}}<br />{{#name}}2. {{first}}{{/name}}<br />{{#name}}3. {{.first}}{{/name}}<br /><br />Friends: {{#friends}}{{.}} {{/friends}}", 
     "bindings": {
